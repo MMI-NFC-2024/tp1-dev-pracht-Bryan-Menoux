@@ -3,13 +3,18 @@ import Layout from "../layouts/Layout.astro";
 import PlotFigure from "../components/PlotFigure.astro";
 import * as Plot from "@observablehq/plot";
 import penguins from "../../penguins.json";
+import olympians from "../../olympians.json";
+import weather from "../../weather.json";
+import diamonds from "../../diamonds.json";
+const delta = (d: any) => d.temp_max - d.temp_min;
 ---
 
 <Layout>
   <h1 class="text-5xl mx-auto w-fit p-6 font-bold">
     TP N°1 : Utilisation de PLOT
   </h1>
-  <details class="pl-6">
+
+  <details class="pl-6 select-none">
     <summary class="cursor-pointer">Exercice 1 : Les pingouins</summary>
     <PlotFigure
       options={{
@@ -19,7 +24,8 @@ import penguins from "../../penguins.json";
       }}
     />
   </details>
-  <details class="pl-6">
+
+  <details class="pl-6 select-none">
     <summary class="cursor-pointer">Exercice 1 Bis : Les pingouins</summary>
     <PlotFigure
       options={{
@@ -27,6 +33,7 @@ import penguins from "../../penguins.json";
           Plot.dot(penguins, {
             x: "culmen_length_mm",
             y: "culmen_depth_mm",
+
             stroke: "species",
           }),
         ],
@@ -36,4 +43,97 @@ import penguins from "../../penguins.json";
       Dans cette version, nous attribuons un stroke en fonction de l'espèce.
     </p>
   </details>
+
+  <details class="pl-6 select-none">
+    <summary class="cursor-pointer">Exercice 2 : Les Athlètes</summary>
+    <PlotFigure
+      options={{
+        marks: [
+          Plot.auto(olympians, {
+            x: "weight",
+            y: "height",
+
+            color: "count",
+          }),
+        ],
+      }}
+    />
+  </details>
+
+  <details class="pl-6 select-none">
+    <summary class="cursor-pointer"
+      >Exercice 2 Bis : La densité des Athlètes</summary
+    >
+    <PlotFigure
+      options={{
+        marks: [
+          Plot.density(olympians, {
+            x: "weight",
+            y: "height",
+            stroke: "sex",
+          }),
+        ],
+      }}
+    />
+  </details>
+  <details class="pl-6 select-none">
+    <summary class="cursor-pointer"
+      >Exercice 2 Bis : Les Athlètes en Hexbin</summary
+    >
+    <PlotFigure
+      options={{
+        marks: [
+          Plot.hexagon(
+            olympians,
+            Plot.hexbin(
+              { fill: "count" }, // la couleur dépend du comptage
+              { x: "weight", y: "height", symbol: "square" }
+            )
+          ),
+        ],
+        color: { scheme: "YlGnBu" }, // thème de couleurs appliqué
+      }}
+    />
+  </details>
+
+  <details class="pl-6 select-none">
+    <summary class="cursor-pointer"
+      >Exercice 3 : Températures quotidiennes</summary
+    >
+    <PlotFigure
+      options={{
+        marks: [
+          Plot.dot(weather, {
+            fill: (d) => new Date(d.date).getUTCMonth(),
+            x: "temp_min",
+            y: delta,
+          }),
+          Plot.dot(weather, Plot.selectMaxY({ x: "temp_min", y: delta, r: 5 })),
+          Plot.text(
+            weather,
+            Plot.selectMaxY({
+              x: "temp_min",
+              y: delta,
+              text: (d) => new Date(d.date).toLocaleDateString(),
+              lineAnchor: "bottom",
+              dy: -10,
+            })
+          ),
+        ],
+      }}
+    />
+  </details>
+
+  <script is:inline>
+    const allDetails = document.querySelectorAll("details");
+    allDetails.forEach((detail) => {
+      detail.addEventListener("toggle", (e) => {
+        if (detail.open) {
+          allDetails.forEach((other) => {
+            if (other !== detail) other.open = false;
+          });
+        }
+      });
+    });
+  </script>
 </Layout>
